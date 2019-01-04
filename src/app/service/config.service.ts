@@ -10,7 +10,13 @@ export class ConfigService {
 
   private _login_url = this._api_url + '/login';
 
-  private _instagram_login_url = this._api_url + '/instagram-login';
+  private _claim_instagram_url = this._api_url + '/claim-instagram';
+
+  private _like_instagram_post_url = this._api_url + '/instagram/like-post';
+
+  private _get_instagram_accounts_url = this._api_url + '/user-instagram-accounts';
+
+  private _get_user_posts_url = this._api_url + '/user-posts';
 
   private _logout_url = this._api_url + '/logout';
 
@@ -28,6 +34,13 @@ export class ConfigService {
 
   private _signup_url = this._api_url + '/signup';
 
+  get get_like_instagram_post_url(): string {
+    return this._like_instagram_post_url;
+  }
+  get get_user_posts_url(): string {
+    return this._get_user_posts_url;
+  }
+
   get reset_credentials_url(): string {
     return this._reset_credentials_url;
   }
@@ -44,8 +57,12 @@ export class ConfigService {
     return this._users_url;
   }
 
-  get instagram_login_url(): string {
-    return this._instagram_login_url;
+  get claim_instagram_url(): string {
+    return this._claim_instagram_url;
+  }
+
+  get get_instagram_accounts_url(): string {
+    return this._get_instagram_accounts_url;
   }
 
   get login_url(): string {

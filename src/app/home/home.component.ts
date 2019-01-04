@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {
   FooService,
   ConfigService,
@@ -17,11 +17,14 @@ import {HttpHeaders} from '@angular/common/http';
 })
 export class HomeComponent implements OnInit {
 
-  instagramUser;
+  @Input() value: string;
+  userPosts;
+  instagramUsers;
   fooResponse = {};
   whoamIResponse = {};
   allUserResponse = {};
   notification: DisplayMessage;
+  selectedAccountUUID;
   private ngUnsubscribe: Subject<void> = new Subject<void>();
   form: FormGroup;
 
@@ -37,15 +40,19 @@ export class HomeComponent implements OnInit {
 
 
   ngOnInit() {
-    const loginHeaders = new HttpHeaders({
-      'Accept': 'application/json',
-      'Content-Type': 'application/x-www-form-urlencoded'
-    });
-    const body = `username=unauth&password=unauth`;
-    this.apiService.post(this.config.instagram_login_url, body, loginHeaders).subscribe( data => {
-      this.instagramUser = data;
-    });
-
+    // const loginHeaders = new HttpHeaders({
+    //   'Accept': 'application/json',
+    //   'Content-Type': 'application/x-www-form-urlencoded'
+    // });
+    // const body = `username=unauth&password=unauth`;
+    // this.apiService.post(this.config.claim_instagram_url, body, loginHeaders).subscribe( data => {
+    //   this.instagramUsers = data;
+    // });
+    this.authService.getUserInstagramAccounts()
+      .subscribe( data => {
+        this.instagramUsers = data;
+        this.selectedAccountUUID = this.instagramUsers[0].uuid;
+      });
     this.route.params
       .takeUntil(this.ngUnsubscribe)
       .subscribe((params: DisplayMessage) => {
@@ -58,11 +65,10 @@ export class HomeComponent implements OnInit {
   }
 
   onSubmit() {
-    this.authService.loginInstagram(this.form.value)
+    this.authService.claimInstagramAccount(this.form.value)
     // show me the animation
       .subscribe(data => {
         console.log(data);
-          this.instagramUser = data;
         },
         error => {
           this.notification = { msgType: 'error', msgBody: 'Incorrect username or password.' };
@@ -98,6 +104,18 @@ export class HomeComponent implements OnInit {
     }
   }
 
+  select(uuid) {
+    this.selectedAccountUUID = uuid;
+  }
+
+  isAccountSelected (account) {
+    if(account.uuid === this.selectedAccountUUID) {
+      return "chat_list active_chat";
+    } else {
+      return "chat_list";
+    }
+  }
+
   forgeResonseObj(obj, res, path) {
     obj['path'] = path;
     obj['method'] = 'GET';
@@ -117,4 +135,19 @@ export class HomeComponent implements OnInit {
     }
   }
 
+
+  likePost(post) {
+    let id = post.id.split('_')[0];
+      console.log(post.pk.toString());
+      console.log(id);
+    return this.authService.instagramLikePost(id, this.selectedAccountUUID)
+      .subscribe();
+  }
+
+  getMedia() {
+    return this.authService.getUserPosts(this.value, this.selectedAccountUUID)
+      .subscribe(data => {
+        this.userPosts = data;
+      });
+  }
 }

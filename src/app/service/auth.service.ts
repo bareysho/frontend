@@ -1,9 +1,9 @@
-import { Injectable } from '@angular/core';
-import { HttpHeaders } from '@angular/common/http';
-import { ApiService } from './api.service';
-import { UserService } from './user.service';
-import { ConfigService } from './config.service';
-import { Observable } from 'rxjs/Observable';
+import {Injectable} from '@angular/core';
+import {HttpHeaders} from '@angular/common/http';
+import {ApiService} from './api.service';
+import {UserService} from './user.service';
+import {ConfigService} from './config.service';
+import {Observable} from 'rxjs/Observable';
 
 @Injectable()
 export class AuthService {
@@ -12,7 +12,8 @@ export class AuthService {
     private apiService: ApiService,
     private userService: UserService,
     private config: ConfigService,
-  ) { }
+  ) {
+  }
 
   login(user) {
     const loginHeaders = new HttpHeaders({
@@ -26,16 +27,43 @@ export class AuthService {
     });
   }
 
-    loginInstagram(user) {
+  instagramLikePost(postId, uuid) {
+    const loginHeaders = new HttpHeaders({
+      'Accept': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded'
+    });
+    const body = `postId=${postId}&uuid=${uuid}`;
+    return this.apiService.post(this.config.get_like_instagram_post_url, body, loginHeaders).map(response => {
+      console.log('Like success');
+      return response;
+    });
+  }
+
+  claimInstagramAccount(user) {
     const loginHeaders = new HttpHeaders({
       'Accept': 'application/json',
       'Content-Type': 'application/x-www-form-urlencoded'
     });
     const body = `username=${user.username}&password=${user.password}`;
-    return this.apiService.post(this.config.instagram_login_url, body, loginHeaders).map(response => {
-      console.log('Login success');
+    return this.apiService.post(this.config.claim_instagram_url, body, loginHeaders).map(response => {
+      console.log('Claim success');
       return response;
 
+    });
+  }
+
+  getUserPosts(username, uuid) {
+    console.log(this.config.get_user_posts_url + '/' + username + '/' + uuid);
+    return this.apiService.get(this.config.get_user_posts_url + '/' + username + '/' + uuid).map(response => {
+      console.log('Get posts success');
+      return response;
+    });
+  }
+
+  getUserInstagramAccounts() {
+    return this.apiService.get(this.config.get_instagram_accounts_url).map(response => {
+      console.log('Get accounts success');
+      return response;
     });
   }
 
