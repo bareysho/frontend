@@ -27,8 +27,8 @@ export class HeaderComponent implements OnInit {
     });
   }
 
-  hasSignedIn() {
-    return !!this.userService.currentUser;
+  public hasSignedIn() {
+    return this.userService.hasSignedIn();
   }
 
   userName() {

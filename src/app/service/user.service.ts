@@ -1,42 +1,45 @@
 import { Injectable } from '@angular/core';
-import { Headers } from '@angular/http';
 import { ApiService } from './api.service';
 import { ConfigService } from './config.service';
+import {Observable} from 'rxjs/Rx';
 
 @Injectable()
 export class UserService {
 
-  currentUser;
+  public currentUser;
 
   constructor(
-    private apiService: ApiService,
-    private config: ConfigService
+    private apiService: ApiService
   ) { }
 
-  initUser() {
-    const promise = this.apiService.get(this.config.refresh_token_url).toPromise()
-    .then(res => {
-      if (res.access_token !== null) {
-        return this.getMyInfo().toPromise()
-        .then(user => {
-          this.currentUser = user;
-        });
-      }
-    })
-    .catch(() => null);
+  public hasSignedIn(): boolean {
+    return !!this.currentUser;
+  }
+
+  public initUser(): Promise<any> {
+    const promise = this.apiService.get(ConfigService.REFRESH_TOKEN_URL).toPromise()
+      .then(res => {
+        if (res.access_token !== null) {
+          return this.getMyInfo().toPromise()
+            .then(user => {
+              this.currentUser = user;
+            });
+        }
+      })
+      .catch(() => null);
     return promise;
   }
 
-  resetCredentials() {
-    return this.apiService.get(this.config.reset_credentials_url);
+  public resetCredentials(): Observable<any> {
+    return this.apiService.get(ConfigService.RESET_CREDENTIALS_URL);
   }
 
-  getMyInfo() {
-    return this.apiService.get(this.config.whoami_url).map(user => this.currentUser = user);
+  public getMyInfo(): Observable<any> {
+    return this.apiService.get(ConfigService.WHOIAM_URL).map(user => this.currentUser = user);
   }
 
-  getAll() {
-    return this.apiService.get(this.config.users_url);
+  public getAll(): Observable<any> {
+    return this.apiService.get(ConfigService.USERS_URL);
   }
 
 }

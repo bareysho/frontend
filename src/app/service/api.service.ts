@@ -1,9 +1,9 @@
-import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpEventType, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
+import {HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpEventType, HttpParams} from '@angular/common/http';
+import {Injectable} from '@angular/core';
+import {Observable} from 'rxjs/Observable';
 import 'rxjs/Rx';
 import 'rxjs/add/observable/throw';
-import { serialize } from 'app/shared/utilities/serialize';
+import {serialize} from 'app/shared/utilities/serialize';
 
 export enum RequestMethod {
   Get = 'GET',
@@ -18,14 +18,14 @@ export enum RequestMethod {
 @Injectable()
 export class ApiService {
 
-  headers = new HttpHeaders({
+  private headers: HttpHeaders = new HttpHeaders({
     'Accept': 'application/json',
     'Content-Type': 'application/json'
   });
 
-  constructor( private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
-  get(path: string, args?: any): Observable<any> {
+  public get(path: string, args?: any): Observable<any> {
     const options = {
       headers: this.headers,
       withCredentials: true
@@ -39,15 +39,15 @@ export class ApiService {
       .catch(this.checkError.bind(this));
   }
 
-  post(path: string, body: any, customHeaders?: HttpHeaders): Observable<any> {
+  public post(path: string, body: any, customHeaders?: HttpHeaders): Observable<any> {
     return this.request(path, body, RequestMethod.Post, customHeaders);
   }
 
-  put(path: string, body: any): Observable<any> {
+  public put(path: string, body: any): Observable<any> {
     return this.request(path, body, RequestMethod.Put);
   }
 
-  delete(path: string, body?: any): Observable<any> {
+  public delete(path: string, body?: any): Observable<any> {
     return this.request(path, body, RequestMethod.Delete);
   }
 

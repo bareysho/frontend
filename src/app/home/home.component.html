@@ -37,46 +37,20 @@
   </app-api-card>
 </div>
 
-<div class="container">
+<div class="container" *ngIf="hasSignedIn()">
   <div class="row">
     <div class="col col-md-5">
-      <div class="claiming-column">
-        <div *ngIf="hasSignedIn()" class="accounts">
-          <div class="inbox_people">
-            <div class="inbox_chat">
-              <div (click)="select(user.uuid)" *ngFor="let user of instagramUsers" class="{{isAccountSelected(user)}}">
-                <div class="chat_people">
-                  <div class="chat_img"><img src="{{user.profilePic}}" alt="sunil"></div>
-                  <div class="chat_ib">
-                    <h5>{{user.username}}</h5>
-                    <a href="{{user.profileUrl}}" target="_blank">{{user.profileUrl}}</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="add-account" *ngIf="hasSignedIn()">
-          <mat-card>
-            <mat-card-content>
-              <form [formGroup]="form" (ngSubmit)="onSubmit()" #loginForm="ngForm">
-                <mat-input-container>
-                  <input matInput formControlName="username" required placeholder="User">
-                </mat-input-container>
-                <mat-input-container>
-                  <input matInput formControlName="password" required type="password" placeholder="Password">
-                </mat-input-container>
-                <button type="submit" mat-raised-button color="primary">Login</button>
-              </form>
-            </mat-card-content>
-          </mat-card>
-        </div>
-        <input [(ngModel)] = "value">
-        <button mat-raised-button color="primary" (click)="getMedia()">Get posts</button>
-      </div>
+      <instagram-accounts-panel></instagram-accounts-panel>
+      <input [(ngModel)]="value">
+      <button mat-raised-button color="primary" (click)="getMedia()">Get posts</button>
     </div>
     <div class="col col-md-7">
+      <uploaded-video-player></uploaded-video-player>
+      <!--<div>-->
+      <!--<img-cropper [image]="data" [settings]="cropperSettings"></img-cropper>-->
+      <!--<br>-->
+      <!--<img [src]="data.image" [width]="cropperSettings.croppedWidth" [height]="cropperSettings.croppedHeight">-->
+      <!--</div>-->
       <div class="post-image" *ngFor="let post of userPosts">
         <img width="200px" height="200px" src="{{post.image_versions2.candidates[0].url}}">
         <button mat-raised-button color="primary" (click)="likePost(post)">Like</button>
@@ -84,6 +58,5 @@
     </div>
   </div>
 </div>
-
 
 <app-github></app-github>

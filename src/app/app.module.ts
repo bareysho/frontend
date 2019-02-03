@@ -42,6 +42,17 @@ import { ChangePasswordComponent } from './change-password/change-password.compo
 import { ForbiddenComponent } from './forbidden/forbidden.component';
 import { AdminComponent } from './admin/admin.component';
 import { SignupComponent } from './signup/signup.component';
+import {ImageCropperComponent} from 'ngx-img-cropper';
+import {VgBufferingModule} from 'videogular2/buffering';
+import {VgOverlayPlayModule} from 'videogular2/overlay-play';
+import {VgControlsModule} from 'videogular2/controls';
+import {VgCoreModule} from 'videogular2/core';
+import {Ng5SliderModule} from 'ng5-slider';
+import {InstagramAccountsPanelComponent} from './component/instagram-accounts-panel/instagram-accounts-panel.component';
+import {InstagramUserProxy} from './service/instagram-user.proxy';
+import {InstagramRequests} from './service/instagram/instagram-requests';
+import {InstagramService} from './service/instagram/instagram.service';
+import {UploadedVideoPlayerComponent} from './component/uploaded-video-player/uploaded-video-player.component';
 
 export function initUserFactory(userService: UserService) {
     return () => userService.initUser();
@@ -61,7 +72,10 @@ export function initUserFactory(userService: UserService) {
     ChangePasswordComponent,
     ForbiddenComponent,
     AdminComponent,
-    SignupComponent
+    SignupComponent,
+    ImageCropperComponent,
+    InstagramAccountsPanelComponent,
+    UploadedVideoPlayerComponent
   ],
   imports: [
     BrowserAnimationsModule,
@@ -79,7 +93,12 @@ export function initUserFactory(userService: UserService) {
     MatToolbarModule,
     MatCardModule,
     MatProgressSpinnerModule,
-    FlexLayoutModule
+    FlexLayoutModule,
+    VgCoreModule,
+    VgControlsModule,
+    VgOverlayPlayModule,
+    VgBufferingModule,
+    Ng5SliderModule,
   ],
   providers: [
     LoginGuard,
@@ -91,6 +110,9 @@ export function initUserFactory(userService: UserService) {
     UserService,
     ConfigService,
     MatIconRegistry,
+    InstagramUserProxy,
+    InstagramRequests,
+    InstagramService,
     {
       'provide': APP_INITIALIZER,
       'useFactory': initUserFactory,
