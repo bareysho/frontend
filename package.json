@@ -55,6 +55,9 @@
     "karma-jasmine": "1.1.0",
     "karma-jasmine-html-reporter": "0.2.2",
     "protractor": "5.1.2",
+    "blueimp-canvas-to-blob": "3.3.0",
+    "exif-js": "exif-js/exif-js#5b6cd6599f801c44490af525adb90da9b5651751",
+    "reflect-metadata": "0.1.x",
     "ts-node": "3.0.6",
     "tslint": "5.7.0",
     "typescript": "2.4.2"

@@ -42,7 +42,6 @@ import { ChangePasswordComponent } from './change-password/change-password.compo
 import { ForbiddenComponent } from './forbidden/forbidden.component';
 import { AdminComponent } from './admin/admin.component';
 import { SignupComponent } from './signup/signup.component';
-import {ImageCropperComponent} from 'ngx-img-cropper';
 import {VgBufferingModule} from 'videogular2/buffering';
 import {VgOverlayPlayModule} from 'videogular2/overlay-play';
 import {VgControlsModule} from 'videogular2/controls';
@@ -53,6 +52,8 @@ import {InstagramUserProxy} from './service/instagram-user.proxy';
 import {InstagramRequests} from './service/instagram/instagram-requests';
 import {InstagramService} from './service/instagram/instagram.service';
 import {UploadedVideoPlayerComponent} from './component/uploaded-video-player/uploaded-video-player.component';
+import {ImageCropperModule} from './ng2-papers-image-cropper/ng2-papers-image-cropper';
+import {InstagramCropperComponent} from './ng2-papers-image-cropper/instagram-cropper.component';
 
 export function initUserFactory(userService: UserService) {
     return () => userService.initUser();
@@ -73,9 +74,9 @@ export function initUserFactory(userService: UserService) {
     ForbiddenComponent,
     AdminComponent,
     SignupComponent,
-    ImageCropperComponent,
     InstagramAccountsPanelComponent,
-    UploadedVideoPlayerComponent
+    UploadedVideoPlayerComponent,
+    InstagramCropperComponent
   ],
   imports: [
     BrowserAnimationsModule,
@@ -99,6 +100,7 @@ export function initUserFactory(userService: UserService) {
     VgOverlayPlayModule,
     VgBufferingModule,
     Ng5SliderModule,
+    ImageCropperModule
   ],
   providers: [
     LoginGuard,
