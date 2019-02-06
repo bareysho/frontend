@@ -86,9 +86,7 @@ export class HomeComponent implements OnInit {
   public getMedia() {
     this.instagramRequests.getUserPosts(this.value, this.userProxy.getUser().getValue()).subscribe(posts => {
       this.userPosts = posts;
-      console.log(posts)
     });
-    console.log(this.userPosts)
   }
 
   public hasSignedIn() {
@@ -97,8 +95,7 @@ export class HomeComponent implements OnInit {
 
   public likePost(post) {
     const id = post.id.split('_')[0];
-    return this.instagramRequests.instagramLikePost(id, this.userProxy.getUser().getValue())
-      .subscribe();
+    this.instagramRequests.instagramLikePost(id, this.userProxy.getUser().getValue()).subscribe();
   }
 
   forgeResonseObj(obj, res, path) {
