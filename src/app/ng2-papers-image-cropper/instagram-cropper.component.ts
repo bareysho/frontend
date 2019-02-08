@@ -1,32 +1,36 @@
-import { Component, ViewChild } from '@angular/core';
-import { ImageCropperComponent } from 'ng2-papers-image-cropper';
+import {Component, ViewChild} from '@angular/core';
+import {ImageCropperComponent} from 'ng2-papers-image-cropper';
 
 @Component({
   selector: 'instagram-cropper',
-  template: `<div>
-                   <h1>Image Cropper</h1>
-                   <button (click)="reset()">Reset Cropper</button>
-                   <br>
-                   <br>
-                   <button (click)="zoomIn()">Zoom In</button>
-                   <button (click)="zoomOut()">Zoom Out</button>
-                   <button (click)="toggleGrid()">Toggle Grid</button>
-                   <button (click)="rotateLeft()">Rotate Left</button>
-                   <button (click)="rotateRight()">Rotate Right</button>
-                   <br>
-                   <button (click)="getSmallCrop()">Sized</button>
-                   <button (click)="getOriginalCrop()">Original</button>
-                   <button (click)="getBlob()">Blob (Sized)</button>
-                   <button (click)="getOriginalBlob()">Blob (Original)</button>
-                   <br>
-                   <button (click)="setType('image/jpeg')">JPEG</button>
-                   <button (click)="setType('image/png')">PNG</button>
-                   <input id="custom-input" type="file" (change)="fileChangeListener($event)">
-                   <div style="width: 500px; height: 500px; background-color: black;">
-                    <image-cropper #imageCropper [image]="data" [showGrid]="showGrid"></image-cropper>
-                   </div>
-                   <img *ngIf="dataSrc" [src]="dataSrc">
-               </div>`
+  template: `
+    <div>
+      <h1>Image Cropper</h1>
+      <button (click)="reset()">Reset Cropper</button>
+      <br>
+      <br>
+      <button (click)="zoomIn()">Zoom In</button>
+      <button (click)="zoomOut()">Zoom Out</button>
+      <button (click)="toggleGrid()">Toggle Grid</button>
+      <button (click)="rotateLeft()">Rotate Left</button>
+      <button (click)="rotateRight()">Rotate Right</button>
+      <br>
+      <button (click)="getSmallCrop()">Sized</button>
+      <button (click)="getOriginalCrop()">Original</button>
+      <button (click)="getBlob()">Blob (Sized)</button>
+      <button (click)="getOriginalBlob()">Blob (Original)</button>
+      <button (click)="fitCrop()">Fit</button>
+      <button (click)="defaultView()">Fit</button>
+      <br>
+      <button (click)="setType('image/jpeg')">JPEG</button>
+      <button (click)="setType('image/png')">PNG</button>
+      <input id="custom-input" type="file" (change)="fileChangeListener($event)">
+      <div style="width: 1024px; height: 1024px; transform: scale(0.5); transform-origin: top left;background-color: transparent;
+                   border: 1px solid black;    margin-bottom: -512px;">
+        <image-cropper #imageCropper [image]="data" [showGrid]="showGrid"></image-cropper>
+      </div>
+      <img *ngIf="dataSrc" [src]="dataSrc">
+    </div>`
 })
 
 export class InstagramCropperComponent {
@@ -44,7 +48,7 @@ export class InstagramCropperComponent {
     this.imageCropper.setExportQuality(1);
     this.imageCropper.setExportType('image/jpeg');
 
-    fileReader.onloadend = (loadEvent:any) => {
+    fileReader.onloadend = (loadEvent: any) => {
       if (loadEvent.target) {
         image.src = loadEvent.target.result;
         this.imageCropper.setImage(image);
@@ -54,11 +58,6 @@ export class InstagramCropperComponent {
     if (file) {
       fileReader.readAsDataURL(file);
     }
-  }
-
-  getSmallCrop() {
-    let smallCrop = this.imageCropper.getSizedCrop(200, 200);
-    this.dataSrc = smallCrop;
   }
 
   setType(type: string) {
@@ -77,6 +76,10 @@ export class InstagramCropperComponent {
     this.imageCropper.reset();
   }
 
+  defaultView() {
+    this.imageCropper.drawDefault();
+  }
+
   rotateLeft() {
     this.imageCropper.rotateLeft();
   }
@@ -89,8 +92,18 @@ export class InstagramCropperComponent {
     this.showGrid = !this.showGrid;
   }
 
+  getSmallCrop() {
+    let smallCrop = this.imageCropper.getSizedCrop(200, 200);
+    this.dataSrc = smallCrop;
+  }
+
   getOriginalCrop() {
     let originalCrop = this.imageCropper.getOriginalCrop();
+    this.dataSrc = originalCrop;
+  }
+
+  fitCrop() {
+    let originalCrop = this.imageCropper.getFitCrop();
     this.dataSrc = originalCrop;
   }
 
@@ -98,7 +111,7 @@ export class InstagramCropperComponent {
     this.imageCropper.getSizedBlob(200, 200).then((blob) => {
       let reader = new FileReader();
 
-      reader.addEventListener("load", (evt) => {
+      reader.addEventListener('load', (evt) => {
         this.dataSrc = (evt.target as any).result;
       });
 
@@ -110,7 +123,7 @@ export class InstagramCropperComponent {
     this.imageCropper.getOriginalCropAsBlob().then((blob) => {
       let reader = new FileReader();
 
-      reader.addEventListener("load", (evt) => {
+      reader.addEventListener('load', (evt) => {
         this.dataSrc = (evt.target as any).result;
       });
 

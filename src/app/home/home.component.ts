@@ -45,8 +45,8 @@ export class HomeComponent implements OnInit {
     this.cropperSettings.height = 100;
     this.cropperSettings.croppedWidth = 100;
     this.cropperSettings.croppedHeight = 100;
-    this.cropperSettings.canvasWidth = 500;
-    this.cropperSettings.canvasHeight = 500;
+    this.cropperSettings.canvasWidth = 1024;
+    this.cropperSettings.canvasHeight = 1024;
     this.data = {};
   }
 
