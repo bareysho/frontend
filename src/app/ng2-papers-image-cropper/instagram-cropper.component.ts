@@ -7,17 +7,13 @@ import {ImageCropperComponent} from 'ng2-papers-image-cropper';
     <div>
       <h1>Image Cropper</h1>
       <button (click)="reset()">Reset Cropper</button>
+      <button (click)="changeMode()">{{mode}}</button>
       <br>
       <br>
       <button (click)="zoomIn()">Zoom In</button>
       <button (click)="zoomOut()">Zoom Out</button>
-      <button (click)="toggleGrid()">Toggle Grid</button>
-      <button (click)="rotateLeft()">Rotate Left</button>
-      <button (click)="rotateRight()">Rotate Right</button>
       <br>
-      <button (click)="getSmallCrop()">Sized</button>
       <button (click)="getOriginalCrop()">Original</button>
-      <button (click)="getBlob()">Blob (Sized)</button>
       <button (click)="getOriginalBlob()">Blob (Original)</button>
       <button (click)="fitCrop()">Fit</button>
       <button (click)="defaultView()">Fit</button>
@@ -39,6 +35,7 @@ export class InstagramCropperComponent {
 
   private dataSrc;
   private showGrid: boolean = true;
+  private mode: string = "fit";
 
   fileChangeListener($event) {
     let image: any = new Image();
@@ -54,10 +51,10 @@ export class InstagramCropperComponent {
         this.imageCropper.setImage(image);
       }
     };
-
     if (file) {
       fileReader.readAsDataURL(file);
     }
+    this.imageCropper.drawDefault();
   }
 
   setType(type: string) {
@@ -131,4 +128,11 @@ export class InstagramCropperComponent {
     });
   }
 
+  changeMode() {
+    if (this.mode === "fit") {
+      this.mode = 'fill';
+    } else {
+      this.mode = "fit";
+    }
+  }
 }

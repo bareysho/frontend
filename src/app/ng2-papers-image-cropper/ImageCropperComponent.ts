@@ -89,7 +89,8 @@ export class ImageCropperComponent implements AfterViewInit, OnChanges {
 
   ngOnChanges(changes) {
     if (this.image) {
-      this.drawImage(this.offsetX, this.offsetY);
+      this.drawDefault();
+      // this.drawImage(this.offsetX, this.offsetY);
     }
   }
 
@@ -204,10 +205,9 @@ export class ImageCropperComponent implements AfterViewInit, OnChanges {
     }
 
     this.image = img;
-
     this.determineBoundingBox();
     this.drawImage(this.offsetX, this.offsetY);
-
+  this.drawDefault();
     // read rotation from EXIF and rotate accordingly
     EXIF.getData(this.image, {
       call: (img) => {
@@ -350,11 +350,15 @@ export class ImageCropperComponent implements AfterViewInit, OnChanges {
     rotatedCanvasContext.rotate(this.rotation * Math.PI / 180);
 
     if (this.rotation === 90) {
-      rotatedCanvasContext.translate(0, -this.canvasSize * scale);
+      rotatedCanvas.width = height;
+      rotatedCanvas.height = width;
+      rotatedCanvasContext.translate(0, this.canvasSize * scale);
     } else if (this.rotation === -90) {
-      rotatedCanvasContext.translate(-this.canvasSize * scale, 0);
+      rotatedCanvas.width = height;
+      rotatedCanvas.height = width;
+      rotatedCanvasContext.translate(-this.canvasSize, 0);
     } else if (this.rotation === -180 || this.rotation === 180) {
-      rotatedCanvasContext.translate(-this.canvasSize * scale, -this.canvasSize * scale);
+      rotatedCanvasContext.translate(-this.canvasSize * scale, -height);
     }
 
     rotatedCanvasContext.drawImage(canvas, 0, 0);
@@ -441,23 +445,16 @@ export class ImageCropperComponent implements AfterViewInit, OnChanges {
   drawDefault() {
     console.log('kek');
     this.context.clearRect(0, 0, 1024, 1024);
-    this.context.save();
-    this.context.rotate(this.rotation * Math.PI / 180);
-
-    if (this.rotation === 90) {
-      this.context.translate(0, 0);
-    } else if (this.rotation === -90) {
-      this.context.translate(-this.canvasSize, 0);
-    } else if (this.rotation === -180 || this.rotation === 180) {
-      this.context.translate(-this.canvasSize, -this.canvasSize);
-    }
+    // this.context.save();
 
     console.log(this.drawWidth, this.drawHeight);
 
     let scale = 1024 / this.image.width;
+    console.log(scale);
+    console.log(this.image.width, this.image.height);
 
     this.context.drawImage(this.image, 0, 0, this.image.width * scale, this.image.height * scale);
-    this.context.restore();
+    // this.context.restore();
 
     if (this.showGrid) {
       this.drawGrid();
