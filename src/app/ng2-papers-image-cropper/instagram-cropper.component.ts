@@ -1,32 +1,9 @@
 import { Component, ViewChild } from '@angular/core';
-import { ImageCropperComponent } from 'ng2-papers-image-cropper';
+import {ImageCropperComponent} from 'app/ng2-papers-image-cropper/ImageCropperComponent';
 
 @Component({
   selector: 'instagram-cropper',
-  template: `<div>
-                   <h1>Image Cropper</h1>
-                   <button (click)="reset()">Reset Cropper</button>
-                   <br>
-                   <br>
-                   <button (click)="zoomIn()">Zoom In</button>
-                   <button (click)="zoomOut()">Zoom Out</button>
-                   <button (click)="toggleGrid()">Toggle Grid</button>
-                   <button (click)="rotateLeft()">Rotate Left</button>
-                   <button (click)="rotateRight()">Rotate Right</button>
-                   <br>
-                   <button (click)="getSmallCrop()">Sized</button>
-                   <button (click)="getOriginalCrop()">Original</button>
-                   <button (click)="getBlob()">Blob (Sized)</button>
-                   <button (click)="getOriginalBlob()">Blob (Original)</button>
-                   <br>
-                   <button (click)="setType('image/jpeg')">JPEG</button>
-                   <button (click)="setType('image/png')">PNG</button>
-                   <input id="custom-input" type="file" (change)="fileChangeListener($event)">
-                   <div style="width: 500px; height: 500px; background-color: black;">
-                    <image-cropper #imageCropper [image]="data" [showGrid]="showGrid"></image-cropper>
-                   </div>
-                   <img *ngIf="dataSrc" [src]="dataSrc">
-               </div>`
+  templateUrl: './instagram-cropper.component.html'
 })
 
 export class InstagramCropperComponent {
@@ -34,17 +11,17 @@ export class InstagramCropperComponent {
   @ViewChild('imageCropper') imageCropper: ImageCropperComponent;
 
   private dataSrc;
-  private showGrid: boolean = true;
+  private showGrid = true;
 
   fileChangeListener($event) {
-    let image: any = new Image();
-    let file: File = $event.target.files[0];
-    let fileReader: FileReader = new FileReader();
+    const image: any = new Image();
+    const file: File = $event.target.files[0];
+    const fileReader: FileReader = new FileReader();
 
     this.imageCropper.setExportQuality(1);
     this.imageCropper.setExportType('image/jpeg');
 
-    fileReader.onloadend = (loadEvent:any) => {
+    fileReader.onloadend = (loadEvent: any) => {
       if (loadEvent.target) {
         image.src = loadEvent.target.result;
         this.imageCropper.setImage(image);
@@ -56,33 +33,20 @@ export class InstagramCropperComponent {
     }
   }
 
-  getSmallCrop() {
-    let smallCrop = this.imageCropper.getSizedCrop(200, 200);
-    this.dataSrc = smallCrop;
-  }
-
   setType(type: string) {
     this.imageCropper.setExportType(type);
   }
 
   zoomIn() {
-    this.imageCropper.zoomCenter(1.25);
+    this.imageCropper.zoomCenter(1.1);
   }
 
   zoomOut() {
-    this.imageCropper.zoomCenter(0.75);
+    this.imageCropper.zoomCenter(0.9);
   }
 
   reset() {
     this.imageCropper.reset();
-  }
-
-  rotateLeft() {
-    this.imageCropper.rotateLeft();
-  }
-
-  rotateRight() {
-    this.imageCropper.rotateRight();
   }
 
   toggleGrid() {
@@ -90,32 +54,11 @@ export class InstagramCropperComponent {
   }
 
   getOriginalCrop() {
-    let originalCrop = this.imageCropper.getOriginalCrop();
+    const originalCrop = this.imageCropper.getOriginalCrop();
     this.dataSrc = originalCrop;
   }
-
-  getBlob() {
-    this.imageCropper.getSizedBlob(200, 200).then((blob) => {
-      let reader = new FileReader();
-
-      reader.addEventListener("load", (evt) => {
-        this.dataSrc = (evt.target as any).result;
-      });
-
-      reader.readAsDataURL(blob);
-    });
+  getSmallCrop() {
+    const smallCrop = this.imageCropper.getSizedCrop(512, 512);
+    this.dataSrc = smallCrop;
   }
-
-  getOriginalBlob() {
-    this.imageCropper.getOriginalCropAsBlob().then((blob) => {
-      let reader = new FileReader();
-
-      reader.addEventListener("load", (evt) => {
-        this.dataSrc = (evt.target as any).result;
-      });
-
-      reader.readAsDataURL(blob);
-    });
-  }
-
 }

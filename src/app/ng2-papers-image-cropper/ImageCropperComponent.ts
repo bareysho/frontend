@@ -1,418 +1,402 @@
-import { Component, ViewChild, AfterViewInit, Input, OnChanges } from '@angular/core';
-import { Observer, Observable } from 'rxjs';
+import {Component, ViewChild, AfterViewInit, Input, OnChanges} from '@angular/core';
 
 import 'blueimp-canvas-to-blob'; // toBlob polyfill
 import 'hammerjs';
+import {Observable, Observer} from 'rxjs/Rx';
+import {ChangeContext, Options} from 'ng5-slider';
 
 declare function require(moduleName: string): any;
-let EXIF = require('exif-js');
 
 @Component({
-    selector: 'image-cropper',
-    styles: [`
-       h1 {
-            color: blue;
-        }
-    `],
-    template: `<canvas (panend)="onPanEnd($event)" (panmove)="onPan($event)" (pinchmove)="onPinch($event)" (pinchend)="onPinchEnd($event)" #cropCanvas style="background: transparent;"></canvas>`
+  selector: 'image-cropper',
+  styles: [`
+    h1 {
+      color: blue;
+    }
+  `],
+  template: `
+    <div style="width: 1024px; height: 1024px; border: 1px solid black; transform-origin: top left;
+      transform: scale(0.5);background-color: transparent;margin-bottom: -512px;">
+      <canvas (panend)="onPanEnd($event)"
+              (panmove)="onPan($event)" (pinchmove)="onPinch($event)"
+              (pinchend)="onPinchEnd($event)" #cropCanvas style="background: transparent;"></canvas>
+    </div>
+    <ng5-slider style="width: 512px" [(value)]="zoomFactor" (userChange)="onUserChange($event)" [options]="options"></ng5-slider>`
 })
 
 export class ImageCropperComponent implements AfterViewInit, OnChanges {
 
-    private context: CanvasRenderingContext2D;
+  options: Options = {
+    floor: 1,
+    ceil: 2,
+    step: 0.02
+  };
 
-    @ViewChild('cropCanvas') canvas;
-    @Input() image;
+  private context: CanvasRenderingContext2D;
 
-    @Input() gridAlpha: number = 0.1;
-    @Input() showGrid: boolean = true;
+  @ViewChild('cropCanvas') canvas;
+  @Input() image;
 
-    private exportQuality: number = 1;
-    private exportType: string = 'image/jpeg';
+  @Input() gridAlpha = 0.1;
+  @Input() showGrid = true;
 
-    private canvasSize: number = 400;
+  private exportQuality = 1;
+  private exportType = 'image/jpeg';
 
-    private offsetX: number = 0;
-    private offsetY: number = 0;
+  private canvasSize = 1024;
 
-    private minOffsetX: number;
-    private maxOffsetX: number;
+  private offsetX = 0;
+  private offsetY = 0;
 
-    private minOffsetY: number;
-    private maxOffsetY: number;
+  private minOffsetX: number;
+  private maxOffsetX: number;
 
-    private drawWidth: number;
-    private drawHeight: number;
+  private minOffsetY: number;
+  private maxOffsetY: number;
 
-    private MAX_ZOOM_FACTOR: number = 5;
-    private MIN_ZOOM_FACTOR: number = 1;
+  private drawWidth: number;
+  private drawHeight: number;
 
-    public zoomFactor: number = 1;
+  private MAX_ZOOM_FACTOR = 10;
+  private MIN_ZOOM_FACTOR = 1;
 
-    private pinchCenter: {x: number, y: number} = null;
-    private pinchScale: {scale: number, initialZoomFactor: number} = null;
+  public zoomFactor = 1;
 
-    private rotation: number = 0;
+  private pinchCenter: { x: number, y: number } = null;
+  private pinchScale: { scale: number, initialZoomFactor: number } = null;
 
-    private pinchObserver: Observer<any>;
-    private panObserver: Observer<any>;
+  private pinchObserver: Observer<any>;
+  private panObserver: Observer<any>;
 
-    private pinch: Observable<any>;
-    private pan: Observable<any>;
+  private pinch: Observable<any>;
+  private pan: Observable<any>;
 
-    constructor() {
-      this.pinch = Observable.create((observer) => {
-        this.pinchObserver = observer;
-      });
+  constructor() {
+    this.pinch = Observable.create((observer) => {
+      this.pinchObserver = observer;
+    });
 
-      this.pan = Observable.create((observer) => {
-        this.panObserver = observer;
-      });
+    this.pan = Observable.create((observer) => {
+      this.panObserver = observer;
+    });
 
-      this.pinch.throttleTime(20).subscribe(event => {
-        if (!this.pinchCenter) {
-          this.pinchCenter = {x: event.center.x - event.target.offsetLeft, y: event.center.y - event.target.offsetTop};
-          this.pinchScale = {scale: event.scale, initialZoomFactor: this.zoomFactor};
-        }
-
-        this.zoomAround(this.pinchScale.initialZoomFactor * event.scale, this.pinchCenter.x, this.pinchCenter.y);
-      });
-
-      this.pan.throttleTime(20).subscribe(event => {
-        let offsetValues = this.determineOffsetValues(event);
-        this.drawImage(offsetValues.x, offsetValues.y);
-      });
-    }
-
-    ngOnChanges(changes) {
-      if (this.image) {
-        this.drawImage(this.offsetX, this.offsetY);
-      }
-    }
-
-    ngAfterViewInit() {
-      this.reset();
-    }
-
-    onPan(event: any): void {
-      this.panObserver.next(event);
-    }
-
-    onPanEnd(event: any): void {
-      let offsetValues = this.determineOffsetValues(event);
-
-      // update offset values (they are allowed now)
-      this.offsetX = offsetValues.x;
-      this.offsetY = offsetValues.y;
-    }
-
-    onPinchEnd(event: any): void {
-      this.pinchCenter = null;
-      this.pinchScale = null;
-    }
-
-    onPinch(event: any): void {
-      this.pinchObserver.next(event);
-    }
-
-    private determineOffsetValues(event: any) {
-      let newOffsetX, newOffsetY;
-
-      if (this.rotation === -90) {
-        newOffsetX = this.quarantineOffsetX(this.offsetX + -1 * event.deltaY);
-        newOffsetY = this.quarantineOffsetY(this.offsetY + event.deltaX);
-      } else if (this.rotation === 90) {
-        newOffsetX = this.quarantineOffsetX(this.offsetX + event.deltaY);
-        newOffsetY = this.quarantineOffsetY(this.offsetY + -1 * event.deltaX);
-      } else if (this.rotation === 180 || this.rotation === -180) {
-        newOffsetX = this.quarantineOffsetX(this.offsetX + -1 * event.deltaX);
-        newOffsetY = this.quarantineOffsetY(this.offsetY + -1 * event.deltaY);
-      } else {
-        newOffsetX = this.quarantineOffsetX(this.offsetX + event.deltaX);
-        newOffsetY = this.quarantineOffsetY(this.offsetY + event.deltaY);
+    this.pinch.throttleTime(0).subscribe(event => {
+      if (!this.pinchCenter) {
+        this.pinchCenter = {x: event.center.x - event.target.offsetLeft, y: event.center.y - event.target.offsetTop};
+        this.pinchScale = {scale: event.scale, initialZoomFactor: this.zoomFactor};
       }
 
-      return {x: newOffsetX, y: newOffsetY};
-    }
+      this.zoomAround(this.pinchScale.initialZoomFactor * event.scale, this.pinchCenter.x, this.pinchCenter.y);
+    });
 
-    private quarantineOffsetX(offsetX: number): number {
-      if (offsetX <= this.minOffsetX) {
-        return this.minOffsetX;
-      } else if (offsetX >= this.maxOffsetX) {
-        return this.maxOffsetX;
-      }
+    this.pan.throttleTime(0).subscribe(event => {
+      const offsetValues = this.determineOffsetValues(event);
+      this.drawImage(offsetValues.x, offsetValues.y);
+    });
+  }
 
-      return offsetX;
-    }
+  onUserChange(changeContext: ChangeContext): void {
+    this.zoomCenter(changeContext.value);
+  }
 
-    private quarantineOffsetY(offsetY: number): number {
-      if (offsetY <= this.minOffsetY) {
-        return this.minOffsetY;
-      } else if (offsetY >= this.maxOffsetY) {
-        return this.maxOffsetY;
-      }
-
-      return offsetY;
-    }
-
-    zoomCenter(zoom: number): void {
-
-      // determine center of image in canvas
-      let preZoomCenterX = Math.min(this.canvasSize, this.drawWidth) / 2;
-      let preZoomCenterY = Math.min(this.canvasSize, this.drawHeight) / 2;
-
-      this.zoomAround(this.zoomFactor * zoom, preZoomCenterX, preZoomCenterY);
-
-    }
-
-    zoomAround(zoom: number, x: number, y: number): void {
-
-      // calculate distances from center to edge of image
-      let distanceX = -this.offsetX + x;
-      let distanceY = -this.offsetY + y;
-
-      // get ratios relative to size of image
-      let ratioX = distanceX / this.drawWidth;
-      let ratioY = distanceY / this.drawHeight;
-
-      // zoom the image
-      this.zoomFactor = Math.max(Math.min(zoom, this.MAX_ZOOM_FACTOR), this.MIN_ZOOM_FACTOR);
-      this.determineBoundingBox();
-
-      // calculate the new distance to center from edge of image
-      let postDistanceX = ratioX * this.drawWidth;
-      let postDistanceY = ratioY * this.drawHeight;
-
-      // get the delta of the two distances
-      let deltaX = postDistanceX - distanceX;
-      let deltaY = postDistanceY - distanceY;
-
-      // move the center point akin to the delta
-      this.offsetX -= deltaX;
-      this.offsetY -= deltaY;
-
+  ngOnChanges(changes) {
+    if (this.image) {
       this.drawImage(this.offsetX, this.offsetY);
+    }
+  }
 
+  ngAfterViewInit() {
+    this.reset();
+  }
+
+  onPan(event: any): void {
+    this.panObserver.next(event);
+  }
+
+  onPanEnd(event: any): void {
+    const offsetValues = this.determineOffsetValues(event);
+
+    // update offset values (they are allowed now)
+    this.offsetX = offsetValues.x;
+    this.offsetY = offsetValues.y;
+  }
+
+  onPinchEnd(event: any): void {
+    this.pinchCenter = null;
+    this.pinchScale = null;
+  }
+
+  onPinch(event: any): void {
+    this.pinchObserver.next(event);
+  }
+
+  private determineOffsetValues(event: any) {
+    const newOffsetX = this.quarantineOffsetX(this.offsetX + event.deltaX);
+    const newOffsetY = this.quarantineOffsetY(this.offsetY + event.deltaY);
+
+    if (this.drawHeight > this.canvasSize) {
+      return {x: newOffsetX, y: newOffsetY}
     }
 
-    setImage(img: any) {
-      if (!img) {
-          throw 'Image is null. Check your Upload.';
-      }
+    return {x: newOffsetX, y: (this.canvasSize - this.drawHeight) / 2};
+  }
 
-      this.image = img;
-
-      this.determineBoundingBox();
-      this.drawImage(this.offsetX, this.offsetY);
-
-      // read rotation from EXIF and rotate accordingly
-      EXIF.getData(this.image, {call: (img) => {
-        let orientation = img.exifdata['Orientation'];
-        // if no orientation is found, img has no EXIF
-
-        if (!orientation) {
-          return;
-        }
-
-        switch (orientation) {
-          case 3:
-            this.rotate(-90);
-          case 6:
-            this.rotate(90);
-          case 8:
-            this.rotate(-90);
-        }
-
-      }});
-
+  private quarantineOffsetX(offsetX: number): number {
+    if (offsetX <= this.minOffsetX) {
+      return this.minOffsetX;
+    } else if (offsetX >= this.maxOffsetX) {
+      return this.maxOffsetX;
     }
 
-    setExportQuality(exportQuality: number) {
-      this.exportQuality = Math.max(Math.min(1, exportQuality), 0);
+    return offsetX;
+  }
+
+  private quarantineOffsetY(offsetY: number): number {
+    if (offsetY <= this.minOffsetY) {
+      return this.minOffsetY;
+    } else if (offsetY >= this.maxOffsetY) {
+      return this.maxOffsetY;
     }
 
-    setExportType(type: string) {
-      if (type !== 'image/png' && type !== 'image/jpeg') {
-        throw 'Type must be either "image/png" or "image/jpeg"';
-      }
-      this.exportType = type;
+    return offsetY;
+  }
+
+  zoomCenter(zoom: number): void {
+
+    // determine center of image in canvas
+    const preZoomCenterX = this.canvasSize / 2;
+    const preZoomCenterY = this.canvasSize / 2;
+
+    this.zoomAround(this.zoomFactor * zoom, preZoomCenterX, preZoomCenterY);
+
+  }
+
+  zoomAround(zoom: number, x: number, y: number): void {
+
+    // calculate distances from center to edge of image
+    const distanceX = -this.offsetX + x;
+    const distanceY = -this.offsetY + y;
+
+    // get ratios relative to size of image
+    const ratioX = distanceX / this.drawWidth;
+    const ratioY = distanceY / this.drawHeight;
+
+    // zoom the image
+    this.zoomFactor = Math.max(Math.min(zoom, this.MAX_ZOOM_FACTOR), this.MIN_ZOOM_FACTOR);
+    this.determineBoundingBox();
+
+    // calculate the new distance to center from edge of image
+    const postDistanceX = ratioX * this.drawWidth;
+    const postDistanceY = ratioY * this.drawHeight;
+
+    // get the delta of the two distances
+    const deltaX = postDistanceX - distanceX;
+    const deltaY = postDistanceY - distanceY;
+
+    // move the center point akin to the delta
+    this.offsetX -= deltaX;
+    this.offsetY -= deltaY;
+
+
+    const off = this.canvasSize - (this.drawWidth + this.offsetX);
+    if (off > 0) {
+      this.offsetX += off;
     }
-
-    getSizedCrop(width = this.drawWidth, height = this.drawHeight): string {
-      let canvas = this.renderInCanvas(width, height) as any;
-      return canvas.toDataURL(this.exportType, this.exportQuality);
-    }
-
-    getOriginalCrop(): string {
-      let canvas = this.renderInCanvas(this.image.width, this.image.height);
-      return canvas.toDataURL(this.exportType, this.exportQuality);
-    }
-
-    getSizedBlob(width = this.drawWidth, height = this.drawHeight): Promise<Blob> {
-      let canvas = this.renderInCanvas(width, height) as any;
-      return new Promise((resolve, reject) => {
-        canvas.toBlob((blob) => {
-          resolve(blob);
-        }, this.exportType, this.exportQuality);
-      });
-    }
-
-    getOriginalCropAsBlob(): Promise<Blob> {
-      let canvas = this.renderInCanvas(this.image.width, this.image.height) as any;
-      return new Promise((resolve, reject) => {
-        canvas.toBlob((blob) => {
-          resolve(blob);
-        }, this.exportType, this.exportQuality);
-      });
-    }
-
-    /**
-     * reset - resets the cropper to its original state, without any image loaded
-     *
-     * @return {type}  description
-     */
-    reset() {
-      let canvas = this.canvas.nativeElement;
-      this.context = canvas.getContext("2d");
-
-      // set canvas to fill parent
-      canvas.style.width = '100%';
-      canvas.style.height = '100%';
-
-      // set new size of canvas to match parent
-      canvas.width  = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-
-      // reset image offset
+    if (this.offsetX > 0) {
       this.offsetX = 0;
-      this.offsetY = 0;
-
-      this.canvasSize = canvas.width;
     }
 
-    rotateLeft() {
-      this.rotate(this.rotation - 90);
+    if (this.offsetY < (this.canvasSize - this.drawHeight) / 2) {
+      this.offsetY = (this.canvasSize - this.drawHeight) / 2;
+    }
+    if (this.offsetY > (this.canvasSize - this.drawHeight) / 2) {
+      this.offsetY = (this.canvasSize - this.drawHeight) / 2;
     }
 
-    rotateRight() {
-      this.rotate(this.rotation + 90);
+
+    this.drawImage(this.offsetX, this.offsetY);
+
+  }
+
+  setImage(img: any) {
+    if (!img) {
+      throw new Error('Image is null. Check your Upload.');
     }
 
-    private rotate(degree: number) {
-      this.rotation = this.normalizeAngle(degree);
-      this.determineBoundingBox();
-      this.drawImage(this.offsetX, this.offsetY);
+    this.image = img;
+    this.determineBoundingBox();
+  }
+
+  setExportQuality(exportQuality: number) {
+    this.exportQuality = Math.max(Math.min(1, exportQuality), 0);
+  }
+
+  setExportType(type: string) {
+    if (type !== 'image/png' && type !== 'image/jpeg') {
+      throw new Error('Type must be either "image/png" or "image/jpeg"');
+    }
+    this.exportType = type;
+  }
+
+  getOriginalCrop(): string {
+    const canvas = this.renderInCanvas(this.image.width, this.image.height);
+    return canvas.toDataURL(this.exportType, this.exportQuality);
+  }
+
+  getSizedCrop(width = this.drawWidth, height = this.drawHeight): string {
+    const canvas = this.renderInCanvas(width, height) as any;
+    return canvas.toDataURL(this.exportType, this.exportQuality);
+  }
+
+  /**
+   * reset - resets the cropper to its original state, without any image loaded
+   *
+   * @return {type}  description
+   */
+  reset() {
+    const canvas = this.canvas.nativeElement;
+    this.context = canvas.getContext('2d');
+
+    // set canvas to fill parent
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+
+    // set new size of canvas to match parent
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+
+    // reset image offset
+    this.offsetX = 0;
+    this.offsetY = 0;
+
+    this.canvasSize = canvas.width;
+  }
+
+  private renderInCanvas(width: number, height: number): HTMLCanvasElement {
+    const canvas = document.createElement('canvas');
+    const canvasContext = canvas.getContext('2d');
+
+    const scale = Math.max(width, height) / this.canvasSize;
+
+    canvas.width = this.canvasSize * scale;
+    canvas.height = this.canvasSize * scale;
+
+    console.log(this.offsetX, this.offsetX);
+
+    canvasContext.drawImage(this.image, this.offsetX * scale, this.offsetY * scale, this.drawWidth * scale, this.drawHeight * scale);
+
+    return this.trimCanvas(canvas);
+  }
+
+  private determineBoundingBox() {
+    const width = this.image.width;
+    const height = this.image.height;
+
+    const scale = this.canvasSize / this.image.width;
+
+    this.drawWidth = width;
+    this.drawHeight = height;
+
+    if (width > height) {
+      this.drawHeight = height * this.zoomFactor * scale;
+      this.drawWidth = width * this.zoomFactor * scale;
+    } else if (height > width) {
+      this.drawHeight = height * this.zoomFactor * scale;
+      this.drawWidth = width * this.zoomFactor * scale;
+    } else {
+      this.drawHeight = this.canvasSize * this.zoomFactor;
+      this.drawWidth = this.canvasSize * this.zoomFactor;
     }
 
-    private normalizeAngle(angle: number) {
-      // reduce the angle
-      angle = angle % 360;
+    this.maxOffsetX = 0;
+    this.maxOffsetY = 0;
+    this.minOffsetX = this.canvasSize - this.drawWidth;
+    this.minOffsetY = this.canvasSize - this.drawHeight;
+  }
 
-      // force it to be the positive remainder, so that 0 <= angle < 360
-      angle = (angle + 360) % 360;
+  private drawGrid() {
+    const gridPadding = 0;
 
-      if (angle > 180) {
-          angle -= 360;
+    for (let x = 0; x <= this.canvasSize; x += (this.canvasSize - 1) / 3) {
+      this.context.moveTo(0.5 + x + gridPadding, gridPadding);
+      this.context.lineTo(0.5 + x + gridPadding, this.canvasSize + gridPadding);
+    }
+
+    for (let x = 0; x <= this.canvasSize; x += (this.canvasSize - 1) / 3) {
+      this.context.moveTo(gridPadding, 0.5 + x + gridPadding);
+      this.context.lineTo(this.canvasSize + gridPadding, 0.5 + x + gridPadding);
+    }
+
+    this.context.strokeStyle = 'rgba(0,0,0,' + this.gridAlpha + ')';
+    this.context.lineWidth = 2;
+    this.context.stroke();
+
+  }
+
+  private drawImage(x: number, y: number) {
+    this.context.clearRect(0, 0, this.canvasSize, this.canvasSize);
+    this.context.save();
+    this.context.drawImage(this.image, x, y, this.drawWidth, this.drawHeight);
+    this.context.restore();
+
+    if (this.showGrid) {
+      this.drawGrid();
+    }
+  }
+
+  public trimCanvas(c) {
+    const ctx = c.getContext('2d'),
+      copy = document.createElement('canvas').getContext('2d'),
+      pixels = ctx.getImageData(0, 0, c.width, c.height),
+      l = pixels.data.length,
+      bound = {
+        top: null,
+        left: null,
+        right: null,
+        bottom: null
+      };
+
+    // Iterate over every pixel to find the highest
+    // and where it ends on every axis ()
+    for (let i = 0; i < l; i += 4) {
+      if (pixels.data[i + 3] !== 0) {
+        const x = (i / 4) % c.width;
+        const y = ~~((i / 4) / c.width);
+
+        if (bound.top === null) {
+          bound.top = y;
+        }
+
+        if (bound.left === null) {
+          bound.left = x;
+        } else if (x < bound.left) {
+          bound.left = x;
+        }
+
+        if (bound.right === null) {
+          bound.right = x;
+        } else if (bound.right < x) {
+          bound.right = x;
+        }
+
+        if (bound.bottom === null) {
+          bound.bottom = y;
+        } else if (bound.bottom < y) {
+          bound.bottom = y;
+        }
       }
-
-      return angle;
     }
 
-    private renderInCanvas(width: number, height: number): HTMLCanvasElement {
-      let canvas = document.createElement('canvas');
-      let canvasContext = canvas.getContext('2d');
+    // Calculate the height and width of the content
+    const trimHeight = bound.bottom - bound.top,
+      trimWidth = bound.right - bound.left,
+      trimmed = ctx.getImageData(bound.left, bound.top, trimWidth, trimHeight);
 
-      let scale = Math.max(width, height) / this.canvasSize;
+    copy.canvas.width = trimWidth;
+    copy.canvas.height = trimHeight;
+    copy.putImageData(trimmed, 0, 0);
 
-      canvas.width = this.canvasSize * scale;
-      canvas.height = this.canvasSize * scale;
-
-      canvasContext.drawImage(this.image, this.offsetX * scale, this.offsetY * scale, this.drawWidth * scale, this.drawHeight * scale);
-
-      // create a new, rotated canvas
-      let rotatedCanvas = document.createElement('canvas');
-      let rotatedCanvasContext = rotatedCanvas.getContext('2d');
-
-      rotatedCanvas.width = this.canvasSize * scale;
-      rotatedCanvas.height = this.canvasSize * scale;
-
-      rotatedCanvasContext.rotate(this.rotation * Math.PI / 180);
-
-      if (this.rotation === 90) {
-        rotatedCanvasContext.translate(0, -this.canvasSize * scale);
-      } else if (this.rotation === -90) {
-        rotatedCanvasContext.translate(-this.canvasSize * scale, 0);
-      } else if (this.rotation === -180 || this.rotation === 180) {
-        rotatedCanvasContext.translate(-this.canvasSize * scale, -this.canvasSize * scale);
-      }
-
-      rotatedCanvasContext.drawImage(canvas, 0, 0);
-
-      return rotatedCanvas;
-    }
-
-    private determineBoundingBox() {
-      let width = this.image.width;
-      let height = this.image.height;
-
-      this.drawWidth = width;
-      this.drawHeight = height;
-
-      if (width > height) {
-        this.drawHeight = this.canvasSize * this.zoomFactor;
-        this.drawWidth = this.canvasSize * this.zoomFactor * (width / height);
-      } else if (height > width) {
-        this.drawHeight = this.canvasSize * this.zoomFactor  * (height / width);
-        this.drawWidth = this.canvasSize * this.zoomFactor;
-      } else {
-        this.drawHeight = this.canvasSize * this.zoomFactor;
-        this.drawWidth = this.canvasSize * this.zoomFactor;
-      }
-
-      this.minOffsetX = this.canvasSize - this.drawWidth;
-      this.maxOffsetX = 0;
-      this.minOffsetY = this.canvasSize - this.drawHeight;
-      this.maxOffsetY = 0;
-    }
-
-    private drawGrid() {
-      let gridPadding = 0;
-
-      for (let x = 0; x <= this.canvasSize; x += (this.canvasSize - 1) / 3) {
-        this.context.moveTo(0.5 + x + gridPadding, gridPadding);
-        this.context.lineTo(0.5 + x + gridPadding, this.canvasSize + gridPadding);
-      }
-
-      for (let x = 0; x <= this.canvasSize; x += (this.canvasSize - 1) / 3) {
-        this.context.moveTo(gridPadding, 0.5 + x + gridPadding);
-        this.context.lineTo(this.canvasSize + gridPadding, 0.5 + x + gridPadding);
-      }
-
-      this.context.strokeStyle = 'rgba(0,0,0,' + this.gridAlpha + ')';
-      this.context.lineWidth = 2;
-      this.context.stroke();
-
-    }
-
-    private drawImage(x: number, y: number) {
-
-      this.context.save();
-      this.context.rotate(this.rotation * Math.PI / 180);
-
-      if (this.rotation === 90) {
-        this.context.translate(0, -this.canvasSize);
-      } else if (this.rotation === -90) {
-        this.context.translate(-this.canvasSize, 0);
-      } else if (this.rotation === -180 || this.rotation === 180) {
-        this.context.translate(-this.canvasSize, -this.canvasSize);
-      }
-
-      this.context.drawImage(this.image, x, y, this.drawWidth, this.drawHeight);
-      this.context.restore();
-
-      if (this.showGrid) {
-        this.drawGrid();
-      }
-    }
-
+    // Return trimmed canvas
+    return copy.canvas;
+  }
 }
