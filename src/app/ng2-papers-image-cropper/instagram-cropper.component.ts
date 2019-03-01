@@ -58,6 +58,11 @@ export class InstagramCropperComponent {
     this.imageCropper.reset();
   }
 
+  zoomReset() {
+    this.imageCropper.zoomFactor = 1;
+    this.imageCropper.zoomCenter(0);
+  }
+
   toggleGrid() {
     this.showGrid = !this.showGrid;
   }

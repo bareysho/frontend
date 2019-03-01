@@ -1,14 +1,35 @@
 <div>
   <h1>Image Cropper</h1>
   <br>
-  <button (click)="zoomIn()">Zoom In</button>
-  <button (click)="zoomOut()">Zoom Out</button>
-  <button (click)="toggleGrid()">Toggle Grid</button>
-
-  <input id="custom-input" type="file" (change)="fileChangeListener($event)">
+  <button
+    mat-raised-button
+    color="primary" (click)="zoomIn()">+
+  </button>
+  <button mat-raised-button
+          color="primary"
+          (click)="zoomOut()">-
+  </button>
+  <button mat-raised-button
+          color="primary" (click)="zoomReset()">Zoom Reset
+  </button>
+  <button mat-raised-button
+          color="primary" (click)="toggleGrid()">Toggle Grid
+  </button>
   <br>
   <br>
-    <image-cropper #imageCropper [image]="data" [showGrid]="showGrid"></image-cropper>
+  <div style="width: 512px; height: 512px; border: 1px solid blue; position:relative;">
+  <div style="border: 1px solid red; position: absolute; left: 0; right: 0;text-align: center;vertical-align: center">Перетащите изображение для загрузки</div>
+  <input style="
+    position: absolute;
+    display: block;
+    width: 512px;
+    height: 512px;
+    opacity: 0;
+    border: 1px solid red;
+    z-index: 3;"
+         id="custom-input" type="file" (change)="fileChangeListener($event)">
+  <image-cropper #imageCropper [image]="data" [showGrid]="showGrid"></image-cropper>
+  </div>
   <br>
   <div>
     <button (click)="uploadFile()">Upload</button>
