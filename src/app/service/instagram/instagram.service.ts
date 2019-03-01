@@ -18,4 +18,8 @@ export class InstagramService {
   public getMedia(username, uuid): Observable<any> {
     return this.instagramRequests.getUserPosts(username, uuid);
   }
+
+  public uploadFile(file, uuid): Observable<any> {
+    return this.instagramRequests.uploadFile(file, uuid);
+  }
 }

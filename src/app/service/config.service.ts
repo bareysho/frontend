@@ -23,4 +23,6 @@ export class ConfigService {
   public static GET_INSTAGRAM_ACCOUNTS_URL = ConfigService.API_URL + '/user-instagram-accounts';
   public static GET_USER_POSTS_URL = ConfigService.API_URL + '/user-posts';
   public static LIKE_POST_URL = ConfigService.API_URL + '/instagram/like-post';
+
+  public static UPLOAD_FILE_URL = ConfigService.API_URL + '/instagram/upload';
 }

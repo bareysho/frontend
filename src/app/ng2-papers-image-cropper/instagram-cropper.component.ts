@@ -1,5 +1,9 @@
 import { Component, ViewChild } from '@angular/core';
 import {ImageCropperComponent} from 'app/ng2-papers-image-cropper/ImageCropperComponent';
+import {InstagramRequests} from '../service/instagram/instagram-requests';
+import {InstagramUserProxy} from '../service/instagram-user.proxy';
+import {FormBuilder} from '@angular/forms';
+import {UserService} from '../service';
 
 @Component({
   selector: 'instagram-cropper',
@@ -7,6 +11,11 @@ import {ImageCropperComponent} from 'app/ng2-papers-image-cropper/ImageCropperCo
 })
 
 export class InstagramCropperComponent {
+
+  constructor(
+    private instagramRequests: InstagramRequests,
+    private instagramAccountProxy: InstagramUserProxy
+  ) {}
 
   @ViewChild('imageCropper') imageCropper: ImageCropperComponent;
 
@@ -38,11 +47,11 @@ export class InstagramCropperComponent {
   }
 
   zoomIn() {
-    this.imageCropper.zoomCenter(1.1);
+    this.imageCropper.zoomCenter(0.1);
   }
 
   zoomOut() {
-    this.imageCropper.zoomCenter(0.9);
+    this.imageCropper.zoomCenter(-0.1);
   }
 
   reset() {
@@ -58,7 +67,14 @@ export class InstagramCropperComponent {
     this.dataSrc = originalCrop;
   }
   getSmallCrop() {
-    const smallCrop = this.imageCropper.getSizedCrop(512, 512);
+    const smallCrop = this.imageCropper.getSizedCrop(1024, 1024);
     this.dataSrc = smallCrop;
+  }
+
+  uploadFile() {
+    const uuid = this.instagramAccountProxy.getUser().getValue();
+    this.setType('image/jpeg');
+    this.getSmallCrop();
+    this.instagramRequests.uploadFile(this.dataSrc, uuid).subscribe();
   }
 }

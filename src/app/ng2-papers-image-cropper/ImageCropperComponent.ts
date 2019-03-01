@@ -57,7 +57,7 @@ export class ImageCropperComponent implements AfterViewInit, OnChanges {
   private drawWidth: number;
   private drawHeight: number;
 
-  private MAX_ZOOM_FACTOR = 10;
+  private MAX_ZOOM_FACTOR = 2;
   private MIN_ZOOM_FACTOR = 1;
 
   public zoomFactor = 1;
@@ -96,7 +96,7 @@ export class ImageCropperComponent implements AfterViewInit, OnChanges {
   }
 
   onUserChange(changeContext: ChangeContext): void {
-    this.zoomCenter(changeContext.value);
+    this.zoomCenter2(changeContext.value);
   }
 
   ngOnChanges(changes) {
@@ -106,6 +106,9 @@ export class ImageCropperComponent implements AfterViewInit, OnChanges {
   }
 
   ngAfterViewInit() {
+    if (this.image) {
+      this.drawImage(this.offsetX, this.offsetY);
+    }
     this.reset();
   }
 
@@ -162,12 +165,34 @@ export class ImageCropperComponent implements AfterViewInit, OnChanges {
   }
 
   zoomCenter(zoom: number): void {
-
+    this.zoomFactor = this.zoomFactor + zoom;
+    if (this.zoomFactor > this.MAX_ZOOM_FACTOR) {
+      this.zoomFactor = this.MAX_ZOOM_FACTOR;
+    }
+    if (this.zoomFactor < this.MIN_ZOOM_FACTOR) {
+      this.zoomFactor = this.MIN_ZOOM_FACTOR;
+    }
     // determine center of image in canvas
     const preZoomCenterX = this.canvasSize / 2;
     const preZoomCenterY = this.canvasSize / 2;
 
-    this.zoomAround(this.zoomFactor * zoom, preZoomCenterX, preZoomCenterY);
+    this.zoomAround(this.zoomFactor, preZoomCenterX, preZoomCenterY);
+
+  }
+
+  zoomCenter2(zoom: number): void {
+    this.zoomFactor = zoom;
+    if (this.zoomFactor > this.MAX_ZOOM_FACTOR) {
+      this.zoomFactor = this.MAX_ZOOM_FACTOR;
+    }
+    if (this.zoomFactor < this.MIN_ZOOM_FACTOR) {
+      this.zoomFactor = this.MIN_ZOOM_FACTOR;
+    }
+    // determine center of image in canvas
+    const preZoomCenterX = this.canvasSize / 2;
+    const preZoomCenterY = this.canvasSize / 2;
+
+    this.zoomAround(this.zoomFactor, preZoomCenterX, preZoomCenterY);
 
   }
 
@@ -180,9 +205,7 @@ export class ImageCropperComponent implements AfterViewInit, OnChanges {
     // get ratios relative to size of image
     const ratioX = distanceX / this.drawWidth;
     const ratioY = distanceY / this.drawHeight;
-
     // zoom the image
-    this.zoomFactor = Math.max(Math.min(zoom, this.MAX_ZOOM_FACTOR), this.MIN_ZOOM_FACTOR);
     this.determineBoundingBox();
 
     // calculate the new distance to center from edge of image
@@ -224,7 +247,11 @@ export class ImageCropperComponent implements AfterViewInit, OnChanges {
     }
 
     this.image = img;
+    setTimeout(() => {
+      this.zoomCenter(0);
+    }, 50);
     this.determineBoundingBox();
+
   }
 
   setExportQuality(exportQuality: number) {

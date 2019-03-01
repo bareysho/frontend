@@ -49,4 +49,16 @@ export class InstagramRequests {
       return response;
     });
   }
+
+  public uploadFile(file, uuid) {
+    const loginHeaders = new HttpHeaders({
+      'Accept': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded'
+    });
+    const body = `file=${file}&uuid=${uuid}`;
+    return this.apiService.post(ConfigService.UPLOAD_FILE_URL, body, loginHeaders).map(response => {
+      console.log('Upload Secceed!');
+      return response;
+    })
+  }
 }

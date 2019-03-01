@@ -1,23 +1,16 @@
 <div>
   <h1>Image Cropper</h1>
-  <button (click)="reset()">Reset Cropper</button>
-  <br>
   <br>
   <button (click)="zoomIn()">Zoom In</button>
   <button (click)="zoomOut()">Zoom Out</button>
   <button (click)="toggleGrid()">Toggle Grid</button>
-  <br>
-  <button (click)="getSmallCrop()">Sized</button>
-  <button (click)="getOriginalCrop()">Original</button>
-  <br>
-  <br>
-  <button (click)="setType('image/jpeg')">JPEG</button>
-  <button (click)="setType('image/png')">PNG</button>
 
   <input id="custom-input" type="file" (change)="fileChangeListener($event)">
   <br>
   <br>
     <image-cropper #imageCropper [image]="data" [showGrid]="showGrid"></image-cropper>
   <br>
-  <img *ngIf="dataSrc" [src]="dataSrc">
+  <div>
+    <button (click)="uploadFile()">Upload</button>
+  </div>
 </div>
