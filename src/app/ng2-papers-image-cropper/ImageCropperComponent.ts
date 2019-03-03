@@ -15,13 +15,26 @@ declare function require(moduleName: string): any;
     }
   `],
   template: `
-    <div style="width: 1024px; height: 1024px; border: 1px solid black; transform-origin: top left;
-      transform: scale(0.5);background-color: transparent;margin-bottom: -512px;">
-      <canvas (panend)="onPanEnd($event)"
-              (panmove)="onPan($event)" (pinchmove)="onPinch($event)"
-              (pinchend)="onPinchEnd($event)" #cropCanvas style="background: transparent;"></canvas>
+    <div style="    overflow: hidden;
+    position: relative;
+    width: 100%;
+    padding-bottom: 100%;">
+      <div style="    position: absolute;
+      border: 1px solid gray;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;">
+        <canvas (panend)="onPanEnd($event)"
+                (panmove)="onPan($event)" (pinchmove)="onPinch($event)"
+                (pinchend)="onPinchEnd($event)" #cropCanvas style="background: transparent;    cursor: pointer;"></canvas>
+      </div>
     </div>
-    <ng5-slider style="width: 512px" [(value)]="zoomFactor" (userChange)="onUserChange($event)" [options]="options"></ng5-slider>`
+    <div class="custom-slider">
+      <ng5-slider [(value)]="zoomFactor" (userChange)="onUserChange($event)" [options]="options"></ng5-slider>
+    </div>`
+
 })
 
 export class ImageCropperComponent implements AfterViewInit, OnChanges {
@@ -137,11 +150,13 @@ export class ImageCropperComponent implements AfterViewInit, OnChanges {
     const newOffsetX = this.quarantineOffsetX(this.offsetX + event.deltaX);
     const newOffsetY = this.quarantineOffsetY(this.offsetY + event.deltaY);
 
-    if (this.drawHeight > this.canvasSize) {
-      return {x: newOffsetX, y: newOffsetY}
+    if (this.drawHeight < this.canvasSize) {
+      return {x: newOffsetX, y: (this.canvasSize - this.drawHeight) / 2};
     }
-
-    return {x: newOffsetX, y: (this.canvasSize - this.drawHeight) / 2};
+    if (this.drawWidth < this.canvasSize) {
+      return {x: (this.canvasSize - this.drawWidth) / 2, y: newOffsetY};
+    }
+    return {x: newOffsetX, y: newOffsetY}
   }
 
   private quarantineOffsetX(offsetX: number): number {
@@ -235,6 +250,12 @@ export class ImageCropperComponent implements AfterViewInit, OnChanges {
     if (this.offsetY > (this.canvasSize - this.drawHeight) / 2) {
       this.offsetY = (this.canvasSize - this.drawHeight) / 2;
     }
+    if (this.offsetX < (this.canvasSize - this.drawWidth) / 2) {
+      this.offsetX = (this.canvasSize - this.drawWidth) / 2;
+    }
+    if (this.offsetX > (this.canvasSize - this.drawWidth) / 2) {
+      this.offsetX = (this.canvasSize - this.drawWidth) / 2;
+    }
 
 
     this.drawImage(this.offsetX, this.offsetY);
@@ -308,8 +329,6 @@ export class ImageCropperComponent implements AfterViewInit, OnChanges {
     canvas.width = this.canvasSize * scale;
     canvas.height = this.canvasSize * scale;
 
-    console.log(this.offsetX, this.offsetX);
-
     canvasContext.drawImage(this.image, this.offsetX * scale, this.offsetY * scale, this.drawWidth * scale, this.drawHeight * scale);
 
     return this.trimCanvas(canvas);
@@ -318,18 +337,29 @@ export class ImageCropperComponent implements AfterViewInit, OnChanges {
   private determineBoundingBox() {
     const width = this.image.width;
     const height = this.image.height;
-
-    const scale = this.canvasSize / this.image.width;
+    let addScale = 1;
+    let scale = 1;
+    if (height < width) {
+      scale = this.canvasSize / this.image.width;
+      if (this.image.width / this.image.height > 1.91) {
+        addScale = (this.image.width / this.image.height) / (1.91);
+      }
+    } else {
+      if (this.image.height / this.image.width > 5 / 4) {
+        addScale = (this.image.height / this.image.width) / (5 / 4);
+      }
+      scale = this.canvasSize / this.image.height * addScale;
+    }
 
     this.drawWidth = width;
     this.drawHeight = height;
 
     if (width > height) {
-      this.drawHeight = height * this.zoomFactor * scale;
-      this.drawWidth = width * this.zoomFactor * scale;
+      this.drawHeight = height * this.zoomFactor * scale * addScale;
+      this.drawWidth = width * this.zoomFactor * scale * addScale;
     } else if (height > width) {
-      this.drawHeight = height * this.zoomFactor * scale;
-      this.drawWidth = width * this.zoomFactor * scale;
+      this.drawHeight = height * this.zoomFactor * scale * addScale;
+      this.drawWidth = width * this.zoomFactor * scale * addScale;
     } else {
       this.drawHeight = this.canvasSize * this.zoomFactor;
       this.drawWidth = this.canvasSize * this.zoomFactor;

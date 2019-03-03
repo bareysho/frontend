@@ -13,6 +13,7 @@ export class InstagramAccountsPanelComponent implements OnInit {
 
   public notification: Object;
   public instagramUsers;
+  submitted = false;
 
   private form: FormGroup;
 
@@ -24,12 +25,16 @@ export class InstagramAccountsPanelComponent implements OnInit {
   ) {}
 
   public onSubmit(): void {
+    this.submitted = true;
     this.instagramRequests.claimInstagramAccount(this.form.value)
     // show me the animation
       .subscribe(data => {
-          console.log(data);
+          this.instagramUsers.push(data.body);
+          console.log(data.body);
+          this.submitted = false;
         },
         error => {
+          this.submitted = false;
           this.notification = {msgType: 'error', msgBody: 'Incorrect username or password.'};
         });
   }
@@ -52,8 +57,8 @@ export class InstagramAccountsPanelComponent implements OnInit {
   public ngOnInit(): void {
     this.instagramRequests.getUserInstagramAccounts()
       .subscribe(data => {
+        this.instagramAccountProxy.setUser(data[0].uuid)
         this.instagramUsers = data;
-        this.instagramAccountProxy.setUser(this.instagramUsers[0].uuid)
       });
     this.form = this.formBuilder.group({
       username: ['', Validators.compose([Validators.required, Validators.minLength(3), Validators.maxLength(64)])],

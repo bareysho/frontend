@@ -59,7 +59,7 @@ export class ApiService {
 
     return this.http.request(req)
       .filter(response => response instanceof HttpResponse)
-      .map((response: HttpResponse<any>) => response.body)
+      .map((response: HttpResponse<any>) => response)
       .catch(error => this.checkError(error));
   }
 
@@ -70,7 +70,7 @@ export class ApiService {
     } else {
       // this.displayError(error);
     }
-    throw error;
+    return error;
   }
 
 }

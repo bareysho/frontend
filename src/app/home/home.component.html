@@ -39,12 +39,12 @@
 
 <div class="container" *ngIf="hasSignedIn()">
   <div class="row">
-    <div class="col col-md-5">
+    <div class="col-xs-3 col-md-3 col-lg-3">
       <instagram-accounts-panel></instagram-accounts-panel>
-      <input [(ngModel)]="value">
-      <button mat-raised-button color="primary" (click)="getMedia()">Get posts</button>
+      <!--<input [(ngModel)]="value">-->
+      <!--<button mat-raised-button color="primary" (click)="getMedia()">Get posts</button>-->
     </div>
-    <div class="col col-md-7">
+    <div class="col-xs-4 col-md-4 col-lg-4">
       <instagram-cropper></instagram-cropper>
       <!--<uploaded-video-player></uploaded-video-player>-->
       <!--<div>-->
@@ -52,9 +52,32 @@
       <!--<br>-->
       <!--<img [src]="data.image" [width]="cropperSettings.croppedWidth" [height]="cropperSettings.croppedHeight">-->
       <!--</div>-->
-      <div class="post-image" *ngFor="let post of userPosts">
-        <img width="200px" height="200px" src="{{post.image_versions2.candidates[0].url}}">
-        <button mat-raised-button color="primary" (click)="likePost(post)">Like</button>
+      <!--<div class="post-image" *ngFor="let post of userPosts">-->
+      <!--<img width="200px" height="200px" src="{{post.image_versions2.candidates[0].url}}">-->
+      <!--<button mat-raised-button color="primary" (click)="likePost(post)">Like</button>-->
+    </div>
+    <div class="col-xs-5 col-md-5 col-lg-5">
+      <div *ngIf="!visible">
+        <p style="font-size: 30px; font-family: 'Open Sans', sans-serif">Вы еще не добавли публикаций на этот аккаунт.</p>
+      </div>
+      <div *ngIf="visible">
+        <h5 style="font-size: 30px; font-family: 'Open Sans', sans-serif">Запланированные публикации</h5>
+        <div *ngFor="let scheduledPost of userScheduledPosts" style="width: 33%; padding: 5px;display: inline-block;">
+          <mat-card style="padding: 0; text-align: left;">
+            <mat-card-content style="height: 160px">
+              <img style="width: 100%" [src]="imageFromBytes(scheduledPost.file)">
+            </mat-card-content>
+            <mat-card-content>
+              <p style="font-family: 'Open Sans', sans-serif; font-size: 16px">{{scheduledPost.comment}}</p>
+            </mat-card-content>
+            <mat-card-content>
+              <p style="font-family: 'Open Sans', sans-serif; font-size: 16px">{{scheduledPost.date}}</p>
+            </mat-card-content>
+            <mat-card-content>
+              <a (click)="deleteScheduledPost(scheduledPost.id)">Удалить</a>
+            </mat-card-content>
+          </mat-card>
+        </div>
       </div>
     </div>
   </div>

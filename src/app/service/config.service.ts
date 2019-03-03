@@ -25,4 +25,8 @@ export class ConfigService {
   public static LIKE_POST_URL = ConfigService.API_URL + '/instagram/like-post';
 
   public static UPLOAD_FILE_URL = ConfigService.API_URL + '/instagram/upload';
+
+  public static ADD_SCHEDULED_POST_URL = ConfigService.API_URL + '/add-scheduled-post';
+  public static DELETE_SCHEDULED_POST_URL = ConfigService.API_URL + '/delete-scheduled-post';
+  public static GET_SCHEDULED_POSTS_URL = ConfigService.API_URL + '/user-scheduled-posts';
 }

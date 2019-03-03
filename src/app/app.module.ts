@@ -1,47 +1,37 @@
-import { BrowserModule } from '@angular/platform-browser';
-import { NgModule, APP_INITIALIZER} from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HttpModule } from '@angular/http';
-import { HttpClientModule } from '@angular/common/http';
+import {BrowserModule} from '@angular/platform-browser';
+import {APP_INITIALIZER, LOCALE_ID, NgModule} from '@angular/core';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {HttpModule} from '@angular/http';
+import {HttpClientModule} from '@angular/common/http';
 // material
 import {
+  MAT_DATE_LOCALE,
   MatButtonModule,
-  MatMenuModule,
+  MatCardModule, MatDatepickerModule,
   MatIconModule,
-  MatToolbarModule,
-  MatTooltipModule,
-  MatCardModule,
-  MatInputModule,
   MatIconRegistry,
-  MatProgressSpinnerModule
+  MatInputModule,
+  MatMenuModule,
+  MatProgressSpinnerModule,
+  MatToolbarModule,
+  MatTooltipModule
 } from '@angular/material';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { FlexLayoutModule } from '@angular/flex-layout';
-import { AppComponent } from './app.component';
-import { AppRoutingModule } from './app-routing.module';
-import { HomeComponent } from './home';
-import { LoginComponent } from './login';
-import { LoginGuard, GuestGuard, AdminGuard } from './guard';
-import { NotFoundComponent } from './not-found';
-import { AccountMenuComponent } from './component/header/account-menu/account-menu.component';
-import {
-  HeaderComponent,
-  ApiCardComponent,
-  FooterComponent,
-  GithubComponent
-} from './component';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {FlexLayoutModule} from '@angular/flex-layout';
+import {AppComponent} from './app.component';
+import {AppRoutingModule} from './app-routing.module';
+import {HomeComponent} from './home';
+import {LoginComponent} from './login';
+import {AdminGuard, GuestGuard, LoginGuard} from './guard';
+import {NotFoundComponent} from './not-found';
+import {AccountMenuComponent} from './component/header/account-menu/account-menu.component';
+import {ApiCardComponent, FooterComponent, GithubComponent, HeaderComponent} from './component';
 
-import {
-  ApiService,
-  AuthService,
-  UserService,
-  FooService,
-  ConfigService
-} from './service';
-import { ChangePasswordComponent } from './change-password/change-password.component';
-import { ForbiddenComponent } from './forbidden/forbidden.component';
-import { AdminComponent } from './admin/admin.component';
-import { SignupComponent } from './signup/signup.component';
+import {ApiService, AuthService, ConfigService, FooService, UserService} from './service';
+import {ChangePasswordComponent} from './change-password/change-password.component';
+import {ForbiddenComponent} from './forbidden/forbidden.component';
+import {AdminComponent} from './admin/admin.component';
+import {SignupComponent} from './signup/signup.component';
 import {VgBufferingModule} from 'videogular2/buffering';
 import {VgOverlayPlayModule} from 'videogular2/overlay-play';
 import {VgControlsModule} from 'videogular2/controls';
@@ -54,10 +44,17 @@ import {InstagramService} from './service/instagram/instagram.service';
 import {UploadedVideoPlayerComponent} from './component/uploaded-video-player/uploaded-video-player.component';
 import {ImageCropperModule} from './ng2-papers-image-cropper/ng2-papers-image-cropper';
 import {InstagramCropperComponent} from './ng2-papers-image-cropper/instagram-cropper.component';
+import {OwlDateTimeModule, OwlNativeDateTimeModule} from 'ng-pick-datetime';
+import {MatMomentDatetimeModule} from '@mat-datetimepicker/moment';
+import {MatDatetimepickerModule, MatNativeDatetimeModule} from '@mat-datetimepicker/core';
+import {DatePipe, registerLocaleData} from '@angular/common';
+import localeDe from '@angular/common/locales/ru';
 
 export function initUserFactory(userService: UserService) {
     return () => userService.initUser();
 }
+
+registerLocaleData(localeDe);
 
 @NgModule({
   declarations: [
@@ -100,7 +97,15 @@ export function initUserFactory(userService: UserService) {
     VgOverlayPlayModule,
     VgBufferingModule,
     Ng5SliderModule,
-    ImageCropperModule
+    ImageCropperModule,
+    BrowserModule,
+    OwlDateTimeModule,
+    OwlNativeDateTimeModule,
+    MatDatepickerModule,
+    // use this if you want to use native javascript dates and INTL API if available
+    MatNativeDatetimeModule,
+    MatMomentDatetimeModule,
+    MatDatetimepickerModule
   ],
   providers: [
     LoginGuard,
@@ -108,6 +113,7 @@ export function initUserFactory(userService: UserService) {
     AdminGuard,
     FooService,
     AuthService,
+    DatePipe,
     ApiService,
     UserService,
     ConfigService,
@@ -120,6 +126,14 @@ export function initUserFactory(userService: UserService) {
       'useFactory': initUserFactory,
       'deps': [UserService],
       'multi': true
+    },
+    {
+      provide: LOCALE_ID,
+      useValue: 'ru-RU'
+    },
+    {
+      provide: MAT_DATE_LOCALE,
+      useExisting: LOCALE_ID
     }
   ],
   bootstrap: [AppComponent]

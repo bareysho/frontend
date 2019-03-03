@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import {HttpHeaders} from '@angular/common/http';
 import {ConfigService} from '../config.service';
 import {ApiService} from '../api.service';
+import {Observable} from 'rxjs/Rx';
 
 @Injectable()
 export class InstagramRequests {
@@ -60,5 +61,36 @@ export class InstagramRequests {
       console.log('Upload Secceed!');
       return response;
     })
+  }
+
+  public getScheduledPosts(uuid) {
+    return this.apiService.get(ConfigService.GET_SCHEDULED_POSTS_URL + '/' + uuid).map(response => {
+      console.log('Get scheduled posts success');
+      return response;
+    });
+  }
+
+  public  addScheduledPost(file, date, comment, uuid) {
+    const loginHeaders = new HttpHeaders({
+      'Accept': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded'
+    });
+    const body = `file=${file}&date=${date}&comment=${comment}&uuid=${uuid}`;
+    return this.apiService.post(ConfigService.ADD_SCHEDULED_POST_URL, body, loginHeaders).map(response => {
+      console.log('Add post Secceed!');
+      return response;
+    });
+  }
+
+  public deleteScheduledPost(id) {
+    const loginHeaders = new HttpHeaders({
+      'Accept': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded'
+    });
+    const body = `id=${id}`;
+    return this.apiService.post(ConfigService.DELETE_SCHEDULED_POST_URL, body, loginHeaders).map(response => {
+      console.log('Delete post' + id + 'Secceed!');
+      return response;
+    });
   }
 }

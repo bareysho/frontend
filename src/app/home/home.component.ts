@@ -27,8 +27,10 @@ export class HomeComponent implements OnInit {
   notification: DisplayMessage;
 
   userPosts;
+  userScheduledPosts;
   data: any;
   cropperSettings: CropperSettings;
+  visible: boolean;
 
 
   constructor(
@@ -48,6 +50,18 @@ export class HomeComponent implements OnInit {
     this.cropperSettings.canvasWidth = 500;
     this.cropperSettings.canvasHeight = 500;
     this.data = {};
+
+    this.userProxy.getUser().subscribe(user => {
+      this.instagramRequests.getScheduledPosts(user).subscribe(scheduledPosts => {
+        if (scheduledPosts.length > 0) {
+          this.visible = true;
+          this.userScheduledPosts = scheduledPosts;
+        } else {
+          this.visible = false;
+          this.userScheduledPosts = [];
+        }
+      });
+    });
   }
 
   ngOnInit() {
@@ -98,6 +112,16 @@ export class HomeComponent implements OnInit {
     this.instagramRequests.instagramLikePost(id, this.userProxy.getUser().getValue()).subscribe();
   }
 
+  deleteScheduledPost(id) {
+    const uuid = this.userProxy.getUser().getValue();
+    this.instagramRequests.deleteScheduledPost(id).subscribe(response => {
+      if (response.status === 200) {
+        this.userProxy.setUser(uuid);
+      }
+      return response;
+    })
+  }
+
   forgeResonseObj(obj, res, path) {
     obj['path'] = path;
     obj['method'] = 'GET';
@@ -115,5 +139,9 @@ export class HomeComponent implements OnInit {
       obj['status'] = 200;
       obj['body'] = JSON.stringify(res, null, 2);
     }
+  }
+
+  imageFromBytes(bytes) {
+    return atob(bytes).replace(new RegExp(/\s/, 'g'), '+');
   }
 }
