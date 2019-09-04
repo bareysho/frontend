@@ -45,7 +45,7 @@
         <mat-form-field style="width: 100%">
           <mat-placeholder>Дата загрузки</mat-placeholder>
           <mat-datetimepicker-toggle [for]="datetimePicker" matSuffix></mat-datetimepicker-toggle>
-          <mat-datetimepicker #datetimePicker rowPlaceholder="123" type="datetime" startView="month" openOnFocus="true"
+          <mat-datetimepicker #datetimePicker rowPlaceholder="Пароль" type="datetime" startView="month" openOnFocus="true"
                               timeInterval="1"></mat-datetimepicker>
           <input matInput formControlName="dateTime" [min]="today" [matDatetimepicker]="datetimePicker"
                  required autocomplete="false">

@@ -10,7 +10,8 @@ import { NotFoundComponent } from './not-found';
 import { ChangePasswordComponent } from './change-password';
 import { ForbiddenComponent } from './forbidden';
 import { SignupComponent } from './signup';
- 
+// import {StatisticComponent} from './statistic/statistic.component';
+
 export const routes: Routes = [
   {
     path: '',
@@ -23,6 +24,10 @@ export const routes: Routes = [
     canActivate: [GuestGuard],
     pathMatch:'full'
   },
+  // {
+  //   path: 'statistic',
+  //   component: StatisticComponent,
+  // },
   {
     path: 'login',
     component: LoginComponent,

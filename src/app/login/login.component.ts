@@ -18,7 +18,7 @@ import { Subject } from 'rxjs/Subject';
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent implements OnInit, OnDestroy {
-  title = 'Login';
+  title = 'Авторизация';
   githubLink = 'https://github.com/bfwg/angular-spring-starter';
   form: FormGroup;
 

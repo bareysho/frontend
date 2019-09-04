@@ -18,7 +18,7 @@ import { Subject } from 'rxjs/Subject';
   styleUrls: ['./signup.component.scss']
 })
 export class SignupComponent implements OnInit, OnDestroy {
-  title = 'Sign up';
+  title = 'Регистрация';
   githubLink = 'https://github.com/bfwg/angular-spring-starter';
   form: FormGroup;
 
@@ -77,6 +77,12 @@ export class SignupComponent implements OnInit, OnDestroy {
     /**
      * Innocent until proven guilty
      */
+    console.log('dwadawda');
+    console.log('dwadawda');
+    console.log('dwadawda');
+    console.log('dwadawda');
+    console.log('dwadawda');
+    console.log('dwadawda');
     this.notification = undefined;
     this.submitted = true;
 
@@ -95,8 +101,5 @@ export class SignupComponent implements OnInit, OnDestroy {
       console.log("Sign up error" + JSON.stringify(error));
       this.notification = { msgType: 'error', msgBody: error['error'].errorMessage };
     });
-
   }
-
-
 }

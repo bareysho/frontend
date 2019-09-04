@@ -49,6 +49,8 @@ import {MatMomentDatetimeModule} from '@mat-datetimepicker/moment';
 import {MatDatetimepickerModule, MatNativeDatetimeModule} from '@mat-datetimepicker/core';
 import {DatePipe, registerLocaleData} from '@angular/common';
 import localeDe from '@angular/common/locales/ru';
+// import {StatisticComponent} from './statistic/statistic.component';
+import {ChartModule} from 'angular-highcharts';
 
 export function initUserFactory(userService: UserService) {
     return () => userService.initUser();
@@ -73,7 +75,8 @@ registerLocaleData(localeDe);
     SignupComponent,
     InstagramAccountsPanelComponent,
     UploadedVideoPlayerComponent,
-    InstagramCropperComponent
+    InstagramCropperComponent,
+    // StatisticComponent,
   ],
   imports: [
     BrowserAnimationsModule,
@@ -105,7 +108,8 @@ registerLocaleData(localeDe);
     // use this if you want to use native javascript dates and INTL API if available
     MatNativeDatetimeModule,
     MatMomentDatetimeModule,
-    MatDatetimepickerModule
+    MatDatetimepickerModule,
+    // ChartModule,
   ],
   providers: [
     LoginGuard,
